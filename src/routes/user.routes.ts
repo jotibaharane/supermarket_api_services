@@ -142,6 +142,37 @@ router.get("/profile", authMiddleware, getProfile);
 
 /**
  * @swagger
+ * /api/users/profile:
+ *   get:
+ *     summary: Get check profile
+ *     tags: [check]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User check data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                 name:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *       401:
+ *         description: Unauthorized - Missing or invalid Bearer token
+ *       404:
+ *         description: User not found
+ */
+router.get("/check", authMiddleware, getProfile);
+/**
+ * @swagger
  * /api/users/update:
  *   put:
  *     summary: Update authenticated user profile
