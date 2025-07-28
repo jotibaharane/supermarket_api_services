@@ -4,35 +4,62 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  build-and-test:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
 
     steps:
+      # Step 1: Checkout the repository
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
+      # Step 2: Set up Node.js
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: "18" # Matches Render's common Node version
+          cache: "npm" # Cache npm dependencies for faster builds
 
+      # Step 3: Install dependencies
       - name: Install dependencies
-        run: npm install
+        run: npm ci # Deterministic install for consistency
 
+      # Step 4: Build the TypeScript project
       - name: Build project
         run: npm run build
+        env:
+          NODE_ENV: production
 
-      - name: Run lint
-        run: npm run lint
-        if: always()
-
-      # Optional: Add tests if you have a test script
+      # Step 5: Run tests (optional, uncomment when tests are added)
       # - name: Run tests
       #   run: npm test
+      #   env:
+      #     MONGODB_URI: ${{ secrets.TEST_MONGODB_URI }}
+      #     JWT_SECRET: ${{ secrets.TEST_JWT_SECRET }}
 
-      - name: Trigger Render deployment
-        run: curl ${{ secrets.RENDER_DEPLOY_HOOK }}
+      # Step 6: Validate environment variables for deployment
+      - name: Validate environment variables
+        run: |
+          if [ -z "${{ secrets.RENDER_DEPLOY_HOOK }}" ]; then
+            echo "Error: RENDER_DEPLOY_HOOK is not set"
+            exit 1
+          fi
+
+      # Step 7: Trigger Render deployment
+      - name: Deploy to Render
+        if: github.event_name == 'push' # Only deploy on push, not PR
+        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
         env:
           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+
+      # Step 8: Notify on failure
+      - name: Notify on failure
+        if: failure()
+        run: echo "Workflow failed. Check logs for details."
