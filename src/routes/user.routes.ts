@@ -142,7 +142,7 @@ router.get("/profile", authMiddleware, getProfile);
 
 /**
  * @swagger
- * /api/users/profile:
+ * /api/users/check:
  *   get:
  *     summary: Get check profile
  *     tags: [check]
