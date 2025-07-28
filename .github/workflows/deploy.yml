@@ -29,7 +29,7 @@ jobs:
 
       # Step 3: Install dependencies
       - name: Install dependencies
-        run: npm ci # Deterministic install
+        run: npm ci # Deterministic install for consistency
 
       # Step 4: Build the TypeScript project
       - name: Build project
@@ -49,12 +49,12 @@ jobs:
         run: |
           echo "Checking RENDER_DEPLOY_HOOK secret"
           if [ -z "${{ secrets.RENDER_DEPLOY_HOOK }}" ]; then
-            echo "RENDER_DEPLOY_HOOK is not set or empty"
+            echo "Error: RENDER_DEPLOY_HOOK is not set or empty"
           else
             echo "RENDER_DEPLOY_HOOK is set (value masked for security)"
           fi
 
-      # Step 7: Validate environment variables for deployment
+      # Step 7: Validate environment variables
       - name: Validate environment variables
         run: |
           if [ -z "${{ secrets.RENDER_DEPLOY_HOOK }}" ]; then
@@ -65,7 +65,9 @@ jobs:
       # Step 8: Trigger Render deployment
       - name: Deploy to Render
         if: github.event_name == 'push' # Only deploy on push, not PR
-        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          echo "Triggering Render deployment"
+          curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
         env:
           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
 
