@@ -29,7 +29,7 @@ jobs:
 
       # Step 3: Install dependencies
       - name: Install dependencies
-        run: npm ci # Deterministic install for consistency
+        run: npm ci # Deterministic install
 
       # Step 4: Build the TypeScript project
       - name: Build project
@@ -44,7 +44,17 @@ jobs:
       #     MONGODB_URI: ${{ secrets.TEST_MONGODB_URI }}
       #     JWT_SECRET: ${{ secrets.TEST_JWT_SECRET }}
 
-      # Step 6: Validate environment variables for deployment
+      # Step 6: Debug Render Deploy Hook
+      - name: Debug Render Deploy Hook
+        run: |
+          echo "Checking RENDER_DEPLOY_HOOK secret"
+          if [ -z "${{ secrets.RENDER_DEPLOY_HOOK }}" ]; then
+            echo "RENDER_DEPLOY_HOOK is not set or empty"
+          else
+            echo "RENDER_DEPLOY_HOOK is set (value masked for security)"
+          fi
+
+      # Step 7: Validate environment variables for deployment
       - name: Validate environment variables
         run: |
           if [ -z "${{ secrets.RENDER_DEPLOY_HOOK }}" ]; then
@@ -52,14 +62,14 @@ jobs:
             exit 1
           fi
 
-      # Step 7: Trigger Render deployment
+      # Step 8: Trigger Render deployment
       - name: Deploy to Render
         if: github.event_name == 'push' # Only deploy on push, not PR
         run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
         env:
           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
 
-      # Step 8: Notify on failure
+      # Step 9: Notify on failure
       - name: Notify on failure
         if: failure()
         run: echo "Workflow failed. Check logs for details."
