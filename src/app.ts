@@ -1,6 +1,7 @@
 import bodyParser from "body-parser";
 import cors from "cors";
 import express, { Application } from "express";
+import helmet from "helmet";
 import swaggerUi from "swagger-ui-express";
 import { connectDB } from "./config/db";
 import { swaggerSpec } from "./config/swagger";
@@ -11,7 +12,7 @@ export const createApp = async (): Promise<Application> => {
   await connectDB();
 
   const app: Application = express();
-
+  app.use(helmet());
   app.use(cors());
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
